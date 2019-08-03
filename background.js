@@ -13,8 +13,8 @@ chrome.webRequest.onBeforeRequest.addListener((details) => {
 },
 {
   urls: [
-    '*://*.youtube.com/*',
-    '*://*.youtu.be/*'
+    '*://*.youtube.com/watch*',
+    '*://*.youtu.be/watch*'
   ],
   types: [
     'main_frame',
