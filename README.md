@@ -6,3 +6,6 @@ not very usable now.
 
 ## License
 This software is licensed under the MIT license.
+
+## Forked from
+https://github.com/JustinHop/invidio-quick-redirect by Austin Moore
