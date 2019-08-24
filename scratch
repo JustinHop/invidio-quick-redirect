@@ -1,0 +1,7 @@
+
+  page_action: {
+    default_icon: {
+      32: "images/invidious.png"
+    },
+    default_title: "Video Player Select"
+  },

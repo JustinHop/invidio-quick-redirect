@@ -1,15 +1,23 @@
 {
-  "name": "Invidio Quick Redirect",
-  "description": "Never hit YouTube!",
-  "version": "1.1.0",
+  "name": "Video Player Select",
+  "description": "Toggle between major video sites",
+  "version": "1.5.0",
   "manifest_version": 2,
   "background": {
     "scripts": ["background.js"]
   },
+  "icons": {
+    "16": "images/vidselect-16.png",
+    "32": "images/vidselect.png"
+  },
   "permissions": [
+    "storage",
+    "contextMenus",
     "webRequest",
     "webRequestBlocking",
     "*://*.youtube.com/watch*",
-    "*://*.youtu.be/watch*"
+    "*://*.youtu.be/watch*",
+    "*://hooktube.com/watch*",
+    "*://invidio.us/watch*"
   ]
 }
