@@ -18,7 +18,14 @@ chrome.runtime.onInstalled.addListener(function() {
 
 var once;
 var twice;
-var always;
+var always = "invidious";
+chrome.extension.getBackgroundPage().console.log("Loading Video Selector");
+
+function logVars(){
+    chrome.extension.getBackgroundPage().console.log("once", once);
+    chrome.extension.getBackgroundPage().console.log("twice", twice);
+    chrome.extension.getBackgroundPage().console.log("always", always);
+}
 
 chrome.storage.sync.get(function(list) {
   if(typeof list.once !== "undefined") {
@@ -38,39 +45,64 @@ chrome.storage.sync.get(function(list) {
   }
 });
 
-chrome.runtime.onInstalled.addListener(function() {
-  chrome.contextMenus.create({"title": "Hooktube Once", "contexts":["page_action"],
-    "onclick": chrome.storage.sync.set({once: "hooktube"}) });
-  chrome.contextMenus.create({"title": "Invidious Once", "contexts":["page_action"],
-    "onclick": chrome.storage.sync.set({once: "invidious"}) });
-  chrome.contextMenus.create({"title": "Youtube Once", "contexts":["page_action"],
-    "onclick": chrome.storage.sync.set({once: "youtube"}) });
+function genericOnClick(info, tab) {
+  chrome.extension.getBackgroundPage().console.log("item " + info.menuItemId + " was clicked");
+  chrome.extension.getBackgroundPage().console.log("info: " + JSON.stringify(info));
+  chrome.extension.getBackgroundPage().console.log("tab: " + JSON.stringify(tab));
+}
 
-  chrome.contextMenus.create({"title": "Hooktube Always", "type": "radio", "contexts":["page_action"],
-    "onclick": chrome.storage.sync.set({always: "hooktube"}) });
+function setOnce(one){
+  logVars();
+  chrome.extension.getBackgroundPage().console.log("setOnce", one);
+  chrome.storage.sync.set({once: one});
+  once = one;
+  logVars();
+  window.location.reload();
+}
+
+function setI(info, tab) {
+
+chrome.runtime.onInstalled.addListener(function() {
+  chrome.contextMenus.create({"title": "Invidious Once", "contexts":["page_action"],
+    "onclick":genericOnClick});
+    // "onclick": setOnce("invidious") });
+  chrome.contextMenus.create({"title": "Hooktube Once", "contexts":["page_action"],
+    // "onclick": setOnce("hooktube") });
+    "onclick":genericOnClick});
+  chrome.contextMenus.create({"title": "Youtube Once", "contexts":["page_action"],
+    // "onclick": setOnce("youtube") });
+    "onclick":genericOnClick});
+
   chrome.contextMenus.create({"title": "Invidious Always", "type": "radio", "contexts":["page_action"],
     "onclick": chrome.storage.sync.set({always: "invidious"}) });
+  chrome.contextMenus.create({"title": "Hooktube Always", "type": "radio", "contexts":["page_action"],
+    "onclick": chrome.storage.sync.set({always: "hooktube"}) });
   chrome.contextMenus.create({"title": "Youtube Always", "type": "radio", "contexts":["page_action"],
     "onclick": chrome.storage.sync.set({always: "youtube"}) });
 });
 
 chrome.storage.onChanged.addListener(function(list, sync) {
+  chrome.extension.getBackgroundPage().console.log(list);
   if (typeof list.once !== "undefined") {
     if (typeof list.once.newValue !== "undefined") {
       once = list.once.newValue;
-      if (window.location.href.indexOf(/(((you|hook)tube\.com)|(youtu\.be)|(invidio\.us))\/.+/) != -1) {
-        window.location.reload();
-      }
+      /*if (window.location.href.indexOf(/(((you|hook)tube\.com)|(youtu\.be)|(invidio\.us))\/.+/) != -1) {*/
+      window.location.reload();
     }
   }
   if (typeof list.always !== "undefined") {
     if (typeof list.always.newValue !== "undefined") {
       always = list.always.newValue;
+      window.location.reload();
     }
   }
+  console.log(list);
+  chrome.extension.getBackgroundPage().console.log("Storage changed", list);
 });
 
 chrome.webRequest.onBeforeRequest.addListener((details) => {
+  logVars();
+  chrome.extension.getBackgroundPage().console.log(details);
   const youtubeRegex = /youtube.com(\/?.*)/;
   const youtubeShortRegex = /youtu.be(\/?.*)/;
   const hooktubeRegex = /hooktube\.com(\/?.*)/;
@@ -86,31 +118,31 @@ chrome.webRequest.onBeforeRequest.addListener((details) => {
     } else if (once === "invidious") {
       return {redirectUrl: 'https://invidio.us' + anyRegex.exec(details.url)[1]};
     } else if ( once === "youtube" ) {
-      return {redirectUrl: 'https://invidio.us' + anyRegex.exec(details.url)[1]};
+      return {redirectUrl: 'https://youtube.com' + anyRegex.exec(details.url)[1]};
     }
   }
 
   if (typeof twice !== "undefined" && twice === true) {
     twice = false;
   } else {
-    if (always) {
+    if (typeof always !== "undefined" && always !== false) {
       if (always === "youtube") {
         if (hooktubeRegex.test(details.url) === true) {
           return {redirectUrl: 'https://www.youtube.com' + hooktubeRegex.exec(details.url)[1]};
         } else if ( invidiousRegex.test(details.url) === true) {
-          return {redirectUrl: 'https://invidio.us' + invidiousRegex.exec(details.url)[1]};
+          return {redirectUrl: 'https://www.youtbe.com' + invidiousRegex.exec(details.url)[1]};
         }
       } else if ( always === "hooktube" ) {
         if (youtubeRegex.test(details.url) === true) {
-          return {redirectUrl: 'https://www.hooktube.com' + youtubeRegex.exec(details.url)[1]};
+          return {redirectUrl: 'https://hooktube.com' + youtubeRegex.exec(details.url)[1]};
         } else if ( invidiousRegex.test(details.url) === true) {
-          return {redirectUrl: 'https://invidio.us' + invidiousRegex.exec(details.url)[1]};
+          return {redirectUrl: 'https://hooktube.com' + invidiousRegex.exec(details.url)[1]};
         }
       } else if ( always === "invidious" ) {
         if (youtubeRegex.test(details.url) === true) {
-          return {redirectUrl: 'https://www.hooktube.com' + youtubeRegex.exec(details.url)[1]};
+          return {redirectUrl: 'https://invidio.us' + youtubeRegex.exec(details.url)[1]};
         } else if (hooktubeRegex.test(details.url) === true) {
-          return {redirectUrl: 'https://www.youtube.com' + hooktubeRegex.exec(details.url)[1]};
+          return {redirectUrl: 'https://invidio.us' + hooktubeRegex.exec(details.url)[1]};
         }
       }
     }
