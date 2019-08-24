@@ -18,7 +18,8 @@ chrome.runtime.onInstalled.addListener(function() {
 
 var once;
 var twice;
-var always = "invidious";
+var always;
+
 chrome.extension.getBackgroundPage().console.log("Loading Video Selector");
 
 function logVars(){
@@ -26,79 +27,94 @@ function logVars(){
     chrome.extension.getBackgroundPage().console.log("twice", twice);
     chrome.extension.getBackgroundPage().console.log("always", always);
 }
+logVars();
 
-chrome.storage.sync.get(function(list) {
-  if(typeof list.once !== "undefined") {
-    once = list.once;
-  } else {
-    once = false;
-  }
-  if(typeof list.twice !== "undefined") {
-    once = list.twice;
-  } else {
-    twice = false;
-  }
-  if(typeof list.always !== "undefined") {
-    always = list.always;
-  } else {
-    always = "invidious";
-  }
-});
+function getVarsFromStorage(){
+  chrome.storage.sync.get(function(list) {
+    if(typeof list.once !== "undefined") {
+      once = list.once;
+    } else {
+      once = false;
+    }
+    if(typeof list.twice !== "undefined") {
+      once = list.twice;
+    } else {
+      twice = false;
+    }
+    if(typeof list.always !== "undefined") {
+      always = list.always;
+    } else {
+      always = "invidious";
+    }
+  });
+}
+getVarsFromStorage();
 
-function genericOnClick(info, tab) {
-  chrome.extension.getBackgroundPage().console.log("item " + info.menuItemId + " was clicked");
-  chrome.extension.getBackgroundPage().console.log("info: " + JSON.stringify(info));
-  chrome.extension.getBackgroundPage().console.log("tab: " + JSON.stringify(tab));
+function putVarsToStorage(){
+  chrome.storage.sync.set({once: once, twice: twice, always: always});
 }
 
 function setOnce(one){
-  logVars();
   chrome.extension.getBackgroundPage().console.log("setOnce", one);
   chrome.storage.sync.set({once: one});
   once = one;
-  logVars();
-  window.location.reload();
 }
 
-function setI(info, tab) {
+function setAlways(alway){
+  chrome.extension.getBackgroundPage().console.log("setAlways", alway);
+  chrome.storage.sync.set({always: alway});
+  always = alway;
+}
+
+function genericOnClick(info) {
+  // chrome.extension.getBackgroundPage().console.log("item " + info.menuItemId + " was clicked");
+  chrome.extension.getBackgroundPage().console.log(info);
+}
 
 chrome.runtime.onInstalled.addListener(function() {
-  chrome.contextMenus.create({"title": "Invidious Once", "contexts":["page_action"],
-    "onclick":genericOnClick});
+  chrome.contextMenus.create({"title": "Invidious Once", "contexts":["page_action"], id: "1i",
+    "onclick": function(e){genericOnClick(e); setOnce("invidious");} });
     // "onclick": setOnce("invidious") });
-  chrome.contextMenus.create({"title": "Hooktube Once", "contexts":["page_action"],
+  chrome.contextMenus.create({"title": "Hooktube Once", "contexts":["page_action"], id: "1h",
+    "onclick": function(e){genericOnClick(e); setOnce("hooktube");} });
     // "onclick": setOnce("hooktube") });
-    "onclick":genericOnClick});
-  chrome.contextMenus.create({"title": "Youtube Once", "contexts":["page_action"],
+  chrome.contextMenus.create({"title": "Youtube Once", "contexts":["page_action"], id: "1y",
+    "onclick": function(e){genericOnClick(e); setOnce("youtube");} });
     // "onclick": setOnce("youtube") });
-    "onclick":genericOnClick});
 
-  chrome.contextMenus.create({"title": "Invidious Always", "type": "radio", "contexts":["page_action"],
-    "onclick": chrome.storage.sync.set({always: "invidious"}) });
-  chrome.contextMenus.create({"title": "Hooktube Always", "type": "radio", "contexts":["page_action"],
-    "onclick": chrome.storage.sync.set({always: "hooktube"}) });
-  chrome.contextMenus.create({"title": "Youtube Always", "type": "radio", "contexts":["page_action"],
-    "onclick": chrome.storage.sync.set({always: "youtube"}) });
+  chrome.contextMenus.create({"title": "Invidious Always", "type": "radio", "contexts":["page_action"], id: "i",
+    "onclick": function(e){genericOnClick(e); setAlways("invidious");} });
+  // "onclick": genericOnClick() });
+    // "onclick": chrome.storage.sync.set({always: "invidious"}) });
+  chrome.contextMenus.create({"title": "Hooktube Always", "type": "radio", "contexts":["page_action"], id: "h",
+    "onclick": function(e){genericOnClick(e); setAlways("hooktube");} });
+  //"onclick": genericOnClick() });
+  // "onclick": chrome.storage.sync.set({always: "hooktube"}) });
+  chrome.contextMenus.create({"title": "Youtube Always", "type": "radio", "contexts":["page_action"], id: "y",
+    "onclick": function(e){genericOnClick(e); setAlways("youtube");} });
+    // "onclick": genericOnClick() });
+    //"onclick": chrome.storage.sync.set({always: "youtube"}) });
 });
 
 chrome.storage.onChanged.addListener(function(list, sync) {
   chrome.extension.getBackgroundPage().console.log(list);
   if (typeof list.once !== "undefined") {
     if (typeof list.once.newValue !== "undefined") {
-      once = list.once.newValue;
+      // once = list.once.newValue;
       /*if (window.location.href.indexOf(/(((you|hook)tube\.com)|(youtu\.be)|(invidio\.us))\/.+/) != -1) {*/
-      window.location.reload();
+      // window.location.reload();
     }
   }
   if (typeof list.always !== "undefined") {
     if (typeof list.always.newValue !== "undefined") {
-      always = list.always.newValue;
-      window.location.reload();
+      // always = list.always.newValue;
+      // window.location.reload();
     }
   }
   console.log(list);
   chrome.extension.getBackgroundPage().console.log("Storage changed", list);
 });
+  
 
 chrome.webRequest.onBeforeRequest.addListener((details) => {
   logVars();
@@ -112,6 +128,7 @@ chrome.webRequest.onBeforeRequest.addListener((details) => {
   if (typeof once !== "undefined" && once !== false) {
     once = false;
     twice = true;
+    putVarsToStorage();
 
     if ( once === "hooktube" ){
       return {redirectUrl: 'https://hooktube.com' + anyRegex.exec(details.url)[1]};
@@ -120,17 +137,16 @@ chrome.webRequest.onBeforeRequest.addListener((details) => {
     } else if ( once === "youtube" ) {
       return {redirectUrl: 'https://youtube.com' + anyRegex.exec(details.url)[1]};
     }
-  }
-
-  if (typeof twice !== "undefined" && twice === true) {
+  } else if (typeof twice !== "undefined" && twice === true) {
     twice = false;
+    putVarsToStorage();
   } else {
     if (typeof always !== "undefined" && always !== false) {
       if (always === "youtube") {
         if (hooktubeRegex.test(details.url) === true) {
           return {redirectUrl: 'https://www.youtube.com' + hooktubeRegex.exec(details.url)[1]};
         } else if ( invidiousRegex.test(details.url) === true) {
-          return {redirectUrl: 'https://www.youtbe.com' + invidiousRegex.exec(details.url)[1]};
+          return {redirectUrl: 'https://www.youtube.com' + invidiousRegex.exec(details.url)[1]};
         }
       } else if ( always === "hooktube" ) {
         if (youtubeRegex.test(details.url) === true) {
