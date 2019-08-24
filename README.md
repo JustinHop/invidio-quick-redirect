@@ -8,4 +8,4 @@ not very usable now.
 This software is licensed under the MIT license.
 
 ## Forked from
-https://github.com/JustinHop/invidio-quick-redirect by Austin Moore
+https://github.com/amoore17/invidio-quick-redirect by Austin Moore
