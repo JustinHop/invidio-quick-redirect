@@ -16,6 +16,28 @@ chrome.runtime.onInstalled.addListener(function() {
 });
 */
 
+var once;
+var twice;
+var always;
+
+chrome.storage.sync.get(function(list) {
+  if(typeof list.once !== "undefined") {
+    once = list.once;
+  } else {
+    once = false;
+  }
+  if(typeof list.twice !== "undefined") {
+    once = list.twice;
+  } else {
+    twice = false;
+  }
+  if(typeof list.always !== "undefined") {
+    always = list.always;
+  } else {
+    always = "invidious";
+  }
+});
+
 chrome.runtime.onInstalled.addListener(function() {
   chrome.contextMenus.create({"title": "Hooktube Once", "contexts":["page_action"],
     "onclick": chrome.storage.sync.set({once: "hooktube"}) });
@@ -35,9 +57,15 @@ chrome.runtime.onInstalled.addListener(function() {
 chrome.storage.onChanged.addListener(function(list, sync) {
   if (typeof list.once !== "undefined") {
     if (typeof list.once.newValue !== "undefined") {
+      once = list.once.newValue;
       if (window.location.href.indexOf(/(((you|hook)tube\.com)|(youtu\.be)|(invidio\.us))\/.+/) != -1) {
         window.location.reload();
       }
+    }
+  }
+  if (typeof list.always !== "undefined") {
+    if (typeof list.always.newValue !== "undefined") {
+      always = list.always.newValue;
     }
   }
 });
@@ -49,50 +77,44 @@ chrome.webRequest.onBeforeRequest.addListener((details) => {
   const invidiousRegex = /invidio\.us(\/?.*)/;
   const anyRegex = /(youtube\.com|youtu\.be|hooktube\.com|invidio\.us)(\/?.*)/;
 
-  chrome.storage.sync.get(function(list) {
-    if (typeof list.once !== "undefined") {
-      let once = list.once;
-      chrome.storage.sync.remove(["once"]);
-      chrome.storage.sync.set({"twice": true});
+  if (typeof once !== "undefined" && once !== false) {
+    once = false;
+    twice = true;
 
-      if ( once === "hooktube" ){
-        window.location = 'https://hooktube.com' + anyRegex.exec(details.url)[1];
-      } else if (once === "invidious") {
-        window.location = 'https://invidio.us' + anyRegex.exec(details.url)[1];
-      } else if ( once === "youtube" ) {
-        window.location = 'https://invidio.us' + anyRegex.exec(details.url)[1];
-      }
+    if ( once === "hooktube" ){
+      return {redirectUrl: 'https://hooktube.com' + anyRegex.exec(details.url)[1]};
+    } else if (once === "invidious") {
+      return {redirectUrl: 'https://invidio.us' + anyRegex.exec(details.url)[1]};
+    } else if ( once === "youtube" ) {
+      return {redirectUrl: 'https://invidio.us' + anyRegex.exec(details.url)[1]};
     }
+  }
 
-    let twice = list.twice || false;
-    let always = list.always || false;
-
-    if (twice) {
-      chrome.storage.sync.remove(["twice"]);
-    } else {
-      if (always) {
-        if (always === "youtube") {
-          if (hooktubeRegex.test(details.url) === true) {
-            return {redirectUrl: 'https://www.youtube.com' + hooktubeRegex.exec(details.url)[1]};
-          } else if ( invidiousRegex.test(details.url) === true) {
-            return {redirectUrl: 'https://invidio.us' + invidiousRegex.exec(details.url)[1]};
-          }
-        } else if ( always === "hooktube" ) {
-          if (youtubeRegex.test(details.url) === true) {
-            return {redirectUrl: 'https://www.hooktube.com' + youtubeRegex.exec(details.url)[1]};
-          } else if ( invidiousRegex.test(details.url) === true) {
-            return {redirectUrl: 'https://invidio.us' + invidiousRegex.exec(details.url)[1]};
-          }
-        } else if ( always === "invidious" ) {
-          if (youtubeRegex.test(details.url) === true) {
-            return {redirectUrl: 'https://www.hooktube.com' + youtubeRegex.exec(details.url)[1]};
-          } else if (hooktubeRegex.test(details.url) === true) {
-            return {redirectUrl: 'https://www.youtube.com' + hooktubeRegex.exec(details.url)[1]};
-          }
+  if (typeof twice !== "undefined" && twice === true) {
+    twice = false;
+  } else {
+    if (always) {
+      if (always === "youtube") {
+        if (hooktubeRegex.test(details.url) === true) {
+          return {redirectUrl: 'https://www.youtube.com' + hooktubeRegex.exec(details.url)[1]};
+        } else if ( invidiousRegex.test(details.url) === true) {
+          return {redirectUrl: 'https://invidio.us' + invidiousRegex.exec(details.url)[1]};
+        }
+      } else if ( always === "hooktube" ) {
+        if (youtubeRegex.test(details.url) === true) {
+          return {redirectUrl: 'https://www.hooktube.com' + youtubeRegex.exec(details.url)[1]};
+        } else if ( invidiousRegex.test(details.url) === true) {
+          return {redirectUrl: 'https://invidio.us' + invidiousRegex.exec(details.url)[1]};
+        }
+      } else if ( always === "invidious" ) {
+        if (youtubeRegex.test(details.url) === true) {
+          return {redirectUrl: 'https://www.hooktube.com' + youtubeRegex.exec(details.url)[1]};
+        } else if (hooktubeRegex.test(details.url) === true) {
+          return {redirectUrl: 'https://www.youtube.com' + hooktubeRegex.exec(details.url)[1]};
         }
       }
     }
-  });
+  }
 },
 {
   urls: [
