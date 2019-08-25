@@ -1,8 +1,6 @@
 ## Summary
-Redirect youtube.com to invidio.us without making a single connection to YouTube.
-
-Only for watching videos. Invidio.us search and interface for finding videos are
-not very usable now.
+Redirect to and from youtube.com, invidio.us, or hooktube.com based on your
+settings
 
 ## License
 This software is licensed under the MIT license.
