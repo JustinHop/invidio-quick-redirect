@@ -1,21 +1,3 @@
-/*
- * use this if I decide to go page action style
-chrome.runtime.onInstalled.addListener(function() {
-  chrome.declarativeContent.onPageChanged.removeRules(undefined, function() {
-    chrome.declarativeContent.onPageChanged.addRules([
-      {
-        conditions: [
-          new chrome.declarativeContent.PageStateMatcher({
-            pageUrl: { urlMatches: '(((you|hook)tube\.com)|(youtu.be)|(invidio.us))\/' },
-          })
-        ],
-        actions: [ new chrome.declarativeContent.ShowPageAction() ]
-      }
-    ]);
-  });
-});
-*/
-
 var once;
 var twice;
 var always;
@@ -72,30 +54,12 @@ function genericOnClick(info) {
 }
 
 chrome.runtime.onInstalled.addListener(function() {
-  /*
-  chrome.contextMenus.create({"title": "Invidious Once", "contexts":["page_action"], id: "1i",
-    "onclick": function(e){genericOnClick(e); setOnce("invidious");} });
-    // "onclick": setOnce("invidious") });
-  chrome.contextMenus.create({"title": "Hooktube Once", "contexts":["page_action"], id: "1h",
-    "onclick": function(e){genericOnClick(e); setOnce("hooktube");} });
-    // "onclick": setOnce("hooktube") });
-  chrome.contextMenus.create({"title": "Youtube Once", "contexts":["page_action"], id: "1y",
-    "onclick": function(e){genericOnClick(e); setOnce("youtube");} });
-    // "onclick": setOnce("youtube") });
-// */
-
   chrome.contextMenus.create({"title": "Invidious", "type": "radio", "contexts":["page_action"], id: "i",
     "onclick": function(e){genericOnClick(e); setAlways("invidious");} });
-  // "onclick": genericOnClick() });
-    // "onclick": chrome.storage.sync.set({always: "invidious"}) });
   chrome.contextMenus.create({"title": "Hooktube", "type": "radio", "contexts":["page_action"], id: "h",
     "onclick": function(e){genericOnClick(e); setAlways("hooktube");} });
-  //"onclick": genericOnClick() });
-  // "onclick": chrome.storage.sync.set({always: "hooktube"}) });
   chrome.contextMenus.create({"title": "Youtube", "type": "radio", "contexts":["page_action"], id: "y",
     "onclick": function(e){genericOnClick(e); setAlways("youtube");} });
-    // "onclick": genericOnClick() });
-    //"onclick": chrome.storage.sync.set({always: "youtube"}) });
 });
 
 chrome.storage.onChanged.addListener(function(list, sync) {
