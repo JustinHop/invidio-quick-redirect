@@ -23,7 +23,7 @@ linkAddress.css({position: 'absolute', left:'-9999em'});
 
 var previousCaretPosition = -1;
 
-COPYL_DEBUG = true;
+COPYL_DEBUG = false;
 
 function write_to_console(text) {
     if (COPYL_DEBUG)
@@ -76,6 +76,9 @@ var listener = function(event) {
     write_to_console("Event value:" + event);
     // The letter c
     if (event.keyCode == 67) {
+        write_to_console("linkAddress to be sent: " + linkAddress);
+        write_to_console(linkAddress.text());
+        chrome.runtime.sendMessage(linkAddress.text());
         selectElement(linkAddress);
     }
 };

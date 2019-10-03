@@ -11,6 +11,12 @@ function logVars(){
 }
 logVars();
 
+chrome.runtime.onMessage.addListener(function(url){
+  console.log("Adding History: " + url);
+
+  chrome.history.addUrl({ url: url });
+});
+
 function getVarsFromStorage(){
   chrome.storage.sync.get(function(list) {
     if(typeof list.once !== "undefined") {
@@ -85,6 +91,8 @@ chrome.storage.onChanged.addListener(function(list, sync) {
 chrome.webRequest.onBeforeRequest.addListener((details) => {
   logVars();
   chrome.extension.getBackgroundPage().console.log(details);
+  chrome.history.addUrl({ url: details.url });
+
   const youtubeRegex = /youtube.com(\/?.*)/;
   const youtubeShortRegex = /youtu.be(\/?.*)/;
   const hooktubeRegex = /hooktube\.com(\/?.*)/;
