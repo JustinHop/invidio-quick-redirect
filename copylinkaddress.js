@@ -23,7 +23,7 @@ linkAddress.css({position: 'absolute', left:'-9999em'});
 
 var previousCaretPosition = -1;
 
-COPYL_DEBUG = false;
+COPYL_DEBUG = true;
 
 function write_to_console(text) {
     if (COPYL_DEBUG)
@@ -72,6 +72,14 @@ function clearLinkAddress() {
     write_to_console("Current selection: " + window.getSelection().toString());
 }
 
+var listener = function(event) {
+    write_to_console("Event value:" + event);
+    // The letter c
+    if (event.keyCode == 67) {
+        selectElement(linkAddress);
+    }
+};
+
 $(function() {
     // The code attaches itself to all anchor elements
     $("html").on("mouseenter", "a", function(){
@@ -83,7 +91,7 @@ $(function() {
 
             linkAddress.text($(this).prop('href'));
             write_to_console("linkAddress: " + linkAddress.text());
-            selectElement(linkAddress);
+            document.addEventListener('keydown', listener, false);
         }
 
         write_to_console("Current Selection: " + window.getSelection().toString());
@@ -91,6 +99,7 @@ $(function() {
             // Every time the user leaves a link
             write_to_console("Leaving link.");
             clearLinkAddress();
+            document.removeEventListener('keydown', listener, false);
         });
 
     $(window).on("beforeunload", function() {
